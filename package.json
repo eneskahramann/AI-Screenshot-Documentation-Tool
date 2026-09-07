@@ -1,0 +1,32 @@
+{
+  "name": "puppeteer-demo",
+  "version": "1.0.0",
+  "description": "Otomatik Kılavuz Üretici",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --x64"
+  },
+  "build": {
+    "appId": "com.eneskod.kilavuzaraci",
+    "productName": "KilavuzAraci",
+    "directories": {
+      "output": "C:\\Users\\KAHRAMAN\\Desktop\\KilavuzProgrami"
+    },
+    "win": {
+      "target": "dir"
+    }
+  },
+  "keywords": [],
+  "author": "Enes",
+  "license": "ISC",
+  "dependencies": {
+    "@google/genai": "^2.21.0",
+    "docx": "^9.7.1",
+    "puppeteer": "^25.10.0"
+  },
+  "devDependencies": {
+    "electron": "^44.2.0",
+    "electron-builder": "^25.1.8"
+  }
+}
