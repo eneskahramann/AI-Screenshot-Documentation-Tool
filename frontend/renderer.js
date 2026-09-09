@@ -1,7 +1,7 @@
-// renderer.js
 const { ipcRenderer } = require('electron');
 
 const apiKeyInput = document.getElementById('apiKey');
+const moduleNameInput = document.getElementById('moduleName'); // YENİ EKLENDİ
 const titleInput = document.getElementById('title');
 const aiModelSelect = document.getElementById('aiModel');
 const captureBtn = document.getElementById('captureBtn');
@@ -25,13 +25,15 @@ captureBtn.addEventListener('click', () => {
   
   localStorage.setItem('geminiApiKey', key);
   
+  // Veriyi arka plana yolluyoruz
   ipcRenderer.send('capture-screen', {
     apiKey: key,
+    moduleName: moduleNameInput.value.trim(), // ANA MODÜL ADI GİDİYOR
     title: titleInput.value.trim(),
     modelName: aiModelSelect.value 
   });
   
-  titleInput.value = ''; 
+  titleInput.value = ''; // Çektikten sonra ekran başlığını temizle (Ana modül adı sabit kalsın ki sürekli yazma)
 });
 
 finishBtn.addEventListener('click', () => {
@@ -53,8 +55,9 @@ ipcRenderer.on('screen-added', (event, screen) => {
   li.dataset.id = screen.id;
   li.draggable = true;
 
+  // Ekranda modül adını da ufakça gösterelim ki neye ait olduğunu bilelim
   li.innerHTML = `
-    <span><strong style="cursor: grab; margin-right: 8px; color: #888;">☰</strong> ${screen.title}</span>
+    <span><strong style="cursor: grab; margin-right: 8px; color: #888;">☰</strong> [${screen.moduleName}] ${screen.title}</span>
     <button class="delete-btn">Sil</button>
   `;
 

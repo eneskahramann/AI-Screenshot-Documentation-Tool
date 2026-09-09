@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
-// --- SERVİSLERİ İÇERİ AKTARIYORUZ ---
+// Servisleri çağırıyoruz (Yolların doğru olduğundan emin ol)
 const { explainScreenLikeIlksan } = require('./services/aiService');
 const { initBrowser, captureActivePage, closeBrowser } = require('./services/browserService');
 const { generateDocx } = require('./services/documentService');
@@ -18,20 +18,24 @@ let capturedScreens = [];
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 380,
-    height: 600,
+    height: 640, // Yeni input alanı için yüksekliği biraz artırdık
     alwaysOnTop: true,
     resizable: false,
     webPreferences: { nodeIntegration: true, contextIsolation: false }
   });
+  
+  // WINDOWS İÇİN ZORUNLU ALWAYS ON TOP AYARLARI
+  mainWindow.setAlwaysOnTop(true, 'screen-saver', 1);
+  mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+
   mainWindow.loadFile(path.join(__dirname, 'frontend', 'index.html'));
 }
 
-// Arayüze log basmak için ufak bir yardımcı fonksiyon
 const sendLog = (msg) => mainWindow?.webContents.send('log', msg);
 
 app.whenReady().then(async () => {
   createWindow();
-  await initBrowser(); // Tarayıcıyı Başlat
+  await initBrowser();
 });
 
 ipcMain.on('delete-screen', (event, id) => {
@@ -59,13 +63,19 @@ ipcMain.on('capture-screen', async (event, data) => {
     const imgBuffer = fs.readFileSync(imgPath);
     const desc = await explainScreenLikeIlksan(imgBuffer, finalTitle, data.apiKey, data.modelName, sendLog);
     
-    // 3. DİZİYE EKLE
-    const screenData = { id: Date.now().toString(), title: finalTitle, imagePath: imgPath, description: desc };
+    // 3. DİZİYE EKLE (Ana Modül adını da burada objeye ekliyoruz)
+    const screenData = { 
+      id: Date.now().toString(), 
+      moduleName: data.moduleName || "Genel İşlemler", // Arayüzden gelen ana başlık
+      title: finalTitle, 
+      imagePath: imgPath, 
+      description: desc 
+    };
     capturedScreens.push(screenData);
 
     // 4. ARAYÜZÜ GÜNCELLE
     mainWindow.webContents.send('screen-added', screenData); 
-    sendLog(`✅ [Adım ${stepCount}] "${finalTitle}" galeriye eklendi!`);
+    sendLog(`✅ "${finalTitle}" galeriye eklendi!`);
     stepCount++;
   } catch (err) {
     sendLog(`❌ Hata: ${err.message}`);
@@ -74,15 +84,10 @@ ipcMain.on('capture-screen', async (event, data) => {
 
 ipcMain.on('finish-manual', async () => {
   try {
-    // 1. TARAYICIYI KAPAT
     await closeBrowser();
-
-    // 2. WORD BELGESİNİ ÜRET
-    const fileName = await generateDocx(capturedScreens);
-
-    sendLog(`🎉 Kılavuz masaüstüne "${fileName}" adıyla kaydedildi!`);
+    const fileName = await generateDocx(capturedScreens); // documentService'e gönder
+    sendLog(`🎉 Kılavuz "${fileName}" adıyla kaydedildi!`);
     
-    // 3. HAFIZAYI SIFIRLA
     capturedScreens = [];
     stepCount = 1;
   } catch (err) {
