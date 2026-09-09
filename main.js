@@ -3,13 +3,15 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { Document, Packer, Paragraph, TextRun, ImageRun, AlignmentType } = require('docx');
+const { Document, Packer, Paragraph, TextRun, ImageRun,   TableOfContents, 
+  HeadingLevel, 
+  PageBreak, AlignmentType } = require('docx');
 const { GoogleGenAI } = require('@google/genai');
 
 // Program .exe haline gelmişse exe'nin yanını, VS Code'daysa proje klasörünü kullan
 const baseDir = app.isPackaged ? path.dirname(process.execPath) : __dirname;
 const TEMP_IMG_DIR = path.join(baseDir, 'temp_screenshots');
-
+// Eğer temp ekran görüntüleri klasörü yoksa oluşturur
 if (!fs.existsSync(TEMP_IMG_DIR)) fs.mkdirSync(TEMP_IMG_DIR, { recursive: true });
 
 let browser = null;
@@ -24,6 +26,7 @@ const docParagraphs = [
 ];
 
 // İLKSAN Formatı + 30 Saniyelik Hata/Kota Koruması + Dinamik Model Seçimi
+// Ekran görüntüsünü Google GenAI ile analiz eder ve İLKSAN formatında açıklama üretir
 async function explainScreenLikeIlksan(imageBuffer, screenName, apiKey, selectedModel, maxRetries = 3) {
   const ai = new GoogleGenAI({ apiKey: apiKey });
   const base64Image = imageBuffer.toString('base64');
@@ -62,6 +65,8 @@ KURAL: Tüm metni resmi dille yaz. Senli benli veya yönlendirici ("tıklayını
       });
 
       return response.text;
+
+      // Eğer API tarafından yanıt alınamazsa veya token limiti aşılırsa catch bloğuna düşer ve tekrar denemeye geçer.
     } catch (err) {
       console.warn(`  ⚠️ API Hatası (${attempt}. deneme): ${err.message}`);
       
@@ -72,14 +77,16 @@ KURAL: Tüm metni resmi dille yaz. Senli benli veya yönlendirici ("tıklayını
         mainWindow?.webContents.send('log', `⏳ Google hız sınırına takıldı, ${waitTime / 1000}sn bekleniyor (${attempt}/${maxRetries})...`);
         
         await new Promise(res => setTimeout(res, waitTime));
-      } else {
+      } 
+      // Eğer tüm denemeler başarısız olursa aşağıdaki sabit açıklama ile devam eder.
+      else {
         console.error(`  ❌ "${screenName}" için AI yanıtı alınamadı, yer tutucu açıklama ile devam ediliyor.`);
         return `[TANIM]\n${screenName} Ekranı, sistemdeki ilgili verilerin yönetilmesi amacıyla kullanılan bir arayüzdür.\n[Not: API Hatası veya Kota limitleri nedeniyle otomatik analiz alınamadı. Lütfen daha sonra manuel düzenleyiniz.]\n\n[İŞLEMLER]\nYapılabilecek işlemler:\n* **Ekran İnceleme:** İlgili alanlar üzerinden standart işlemler gerçekleştirilebilir.`;
       }
     }
   }
 }
-
+// Metni İLKSAN formatına uygun şekilde docx paragraflarına dönüştürür
 function formatIlksanTextToDocx(rawText) {
   const lines = rawText.split('\n');
   const paragraphs = [];
@@ -95,7 +102,7 @@ function formatIlksanTextToDocx(rawText) {
       }));
       continue;
     }
-
+    // Madde işaretli veya alt madde işaretli satırları işler
     if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
       const content = trimmed.replace(/^[\*\-]\s*/, '');
       const parts = content.split(/(\*\*.*?\*\*)/g);
@@ -116,7 +123,7 @@ function formatIlksanTextToDocx(rawText) {
       }));
       continue;
     }
-
+// Normal metin satırlarını işler
     paragraphs.push(new Paragraph({
       children: [new TextRun({ text: trimmed, font: 'Calibri', size: 21, color: '333333' })],
       spacing: { before: 100, after: 140 },
@@ -126,7 +133,7 @@ function formatIlksanTextToDocx(rawText) {
 
   return paragraphs;
 }
-
+// Electron ana penceresini oluşturur
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 380,
@@ -141,10 +148,10 @@ function createWindow() {
 
   mainWindow.loadFile('index.html');
 }
-
+// Electron uygulaması hazır olduğunda tarayıcıyı başlatır ve ilk sayfayı açar
 app.whenReady().then(async () => {
   createWindow();
-
+// Tarayıcıyı başlatmak için sistemdeki olası tarayıcı yollarını kontrol eder
   const getBrowserPath = () => {
     const paths = [
       'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
@@ -167,13 +174,13 @@ app.whenReady().then(async () => {
       '--ignore-certificate-errors-spki-list'
     ]
   });
-
+  
   const pages = await browser.pages();
   const initialPage = pages.length > 0 ? pages[0] : await browser.newPage();
   await initialPage.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 2 });
   await initialPage.goto('about:blank');
 });
-
+// Ekran yakalama tetiklendiğinde çalışacak IPC dinleyicisi
 ipcMain.on('capture-screen', async (event, data) => {
   console.log('📸 Ekran yakalama tetiklendi...');
   try {
@@ -187,7 +194,7 @@ ipcMain.on('capture-screen', async (event, data) => {
     if (!currentPages || currentPages.length === 0) {
       throw new Error('Açık tarayıcı sekmesi bulunamadı.');
     }
-
+    // En son aktif sayfayı belirler, eğer URL "about:blank" değilse onu kullanır
     let activePage = currentPages[currentPages.length - 1];
     for (let p of currentPages) {
       const u = p.url();
@@ -195,7 +202,7 @@ ipcMain.on('capture-screen', async (event, data) => {
         activePage = p;
       }
     }
-
+    // Aktif sayfayı öne getirir ve ekran görüntüsü alır.
     await activePage.bringToFront();
 
     let pageTitle = '';
@@ -220,7 +227,7 @@ ipcMain.on('capture-screen', async (event, data) => {
     mainWindow.webContents.send('log', `🤖 [${selectedModel}] "${finalTitle}" inceleniyor...`);
     
     const desc = await explainScreenLikeIlksan(imgBuffer, finalTitle, apiKey, selectedModel);
-
+    // Kılavuz formatına uygun şekilde docx paragraflarına dönüştürülür ve eklenir
     docParagraphs.push(
       new Paragraph({
         children: [new TextRun({ text: `${stepCount}. ${finalTitle}`, bold: true, size: 24, font: 'Calibri', color: '2E75B6' })],
@@ -278,7 +285,7 @@ ipcMain.on('finish-manual', async () => {
     mainWindow.webContents.send('log', `❌ Hata: ${err.message}`);
   }
 });
-
+// Tüm pencereler kapatıldığında uygulamayı sonlandırır.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
