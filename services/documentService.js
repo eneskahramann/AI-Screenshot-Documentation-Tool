@@ -56,18 +56,40 @@ async function generateDocx(capturedScreens) {
       spacing: { before: 200, after: 300 }
     }),
     new Paragraph({ text: 'İçindekiler', heading: HeadingLevel.HEADING_1, spacing: { before: 200, after: 150 } }),
-    new TableOfContents("İçindekiler Tablosu", { hyperlink: true, headingStyleRange: "1-3" }),
+    // İçindekiler tablosunu Heading 1 ve 2'yi alacak şekilde ayarlıyoruz
+    new TableOfContents("İçindekiler Tablosu", { hyperlink: true, headingStyleRange: "1-2" }),
     new Paragraph({ children: [new PageBreak()] })
   ];
 
-  capturedScreens.forEach((item, index) => {
-    const imgBuffer = fs.readFileSync(item.imagePath);
+  let currentModule = "";
+  let moduleIndex = 0; // YENİ: Ana modül sayacı (1, 2, 3...)
+  let subIndex = 1;    // Alt ekran sayacı (1.1, 1.2, 1.3...)
 
+  capturedScreens.forEach((item) => {
+    const imgBuffer = fs.readFileSync(item.imagePath);
+    const moduleName = item.moduleName || "Genel İşlemler";
+
+    // 1. ANA MODÜL KONTROLÜ (Örn: 1- AİDAT Modülü)
+    if (moduleName !== currentModule) {
+      moduleIndex++; // Ana başlık sayacını 1 artır
+      subIndex = 1;  // Alt başlık sayacını sıfırla
+      
+      docParagraphs.push(
+        new Paragraph({
+          heading: HeadingLevel.HEADING_1,
+          children: [new TextRun({ text: `${moduleIndex}- ${moduleName}`, bold: true, size: 28, font: 'Calibri', color: '1F4E79' })],
+          spacing: { before: 400, after: 200 }
+        })
+      );
+      currentModule = moduleName;
+    }
+
+    // 2. EKRAN BAŞLIĞI KONTROLÜ (Örn: 1.1. Aidat Liste)
     docParagraphs.push(
       new Paragraph({
-        heading: HeadingLevel.HEADING_1, 
-        children: [new TextRun({ text: `${index + 1}. ${item.title}`, bold: true, size: 24, font: 'Calibri', color: '2E75B6' })],
-        spacing: { before: 400, after: 150 }
+        heading: HeadingLevel.HEADING_2, 
+        children: [new TextRun({ text: `${moduleIndex}.${subIndex}. ${item.title}`, bold: true, size: 24, font: 'Calibri', color: '2E75B6' })],
+        spacing: { before: 200, after: 150 }
       }),
       new Paragraph({
         children: [new ImageRun({ data: imgBuffer, type: 'png', transformation: { width: 580, height: 330 } })],
@@ -76,6 +98,8 @@ async function generateDocx(capturedScreens) {
       }),
       ...formatIlksanTextToDocx(item.description)
     );
+    
+    subIndex++; // Alt başlık numarasını bir sonraki ekran için artır
   });
 
   const doc = new Document({
@@ -97,7 +121,7 @@ async function generateDocx(capturedScreens) {
   const outputPath = path.join(desktopPath, fileName);
   
   fs.writeFileSync(outputPath, fileBuffer);
-  return fileName; // Dosya ismini Orkestra Şefine gönder
+  return fileName; 
 }
 
 module.exports = { generateDocx };

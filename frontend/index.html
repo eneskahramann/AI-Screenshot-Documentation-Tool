@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Kılavuz Paneli</title>
-  <!-- CSS Dosyasını Bağlıyoruz -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,9 +12,15 @@
     <input type="password" id="apiKey" placeholder="AIzaSy...">
   </div>
 
+  <!-- YENİ: Ana Modül Giriş Alanı -->
   <div class="form-group">
-    <label>Ekran Başlığı (İsteğe Bağlı):</label>
-    <input type="text" id="title" placeholder="Örn: Aidat Liste Ekranı">
+    <label>Ana Modül Adı (Örn: Araç Kampanya):</label>
+    <input type="text" id="moduleName" placeholder="Kılavuzdaki Ana Başlık">
+  </div>
+
+  <div class="form-group">
+    <label>Ekran Başlığı (Örn: Araç Kampanya Liste):</label>
+    <input type="text" id="title" placeholder="Kılavuzdaki Alt Başlık">
   </div>
 
   <div class="form-group">
@@ -39,7 +44,6 @@
 
   <div id="logArea">Hazır. İşlem bekleniyor...</div>
 
-  <!-- JavaScript Dosyasını Bağlıyoruz -->
   <script src="renderer.js"></script>
 </body>
 </html>
