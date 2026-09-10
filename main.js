@@ -53,7 +53,7 @@ ipcMain.on('reorder-screens', (event, newOrderIds) => {
 
 ipcMain.on('capture-screen', async (event, data) => {
   try {
-    const imgPath = path.join(TEMP_IMG_DIR, `step_${stepCount}.png`);
+    const imgPath = path.join(TEMP_IMG_DIR, `step_${stepCount}.jpg`);
     
     // 1. EKRANI YAKALA
     const finalTitle = await captureActivePage(imgPath, data.title, stepCount);

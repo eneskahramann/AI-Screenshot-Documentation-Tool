@@ -47,7 +47,12 @@ async function captureActivePage(imgPath, customTitle, stepCount) {
 
   const finalTitle = (customTitle && customTitle.trim() !== '') ? customTitle.trim() : (pageTitle || `Ekran ${stepCount}`);
 
-  await activePage.screenshot({ path: imgPath, fullPage: false });
+  await activePage.screenshot({ 
+    path: imgPath, 
+    type: 'jpeg', 
+    quality: 80, 
+    fullPage: false 
+  });
   
   return finalTitle;
 }
