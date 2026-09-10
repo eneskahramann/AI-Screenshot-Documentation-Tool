@@ -32,7 +32,7 @@ KURAL: Tüm metni resmi dille yaz. Senli benli veya yönlendirici ("tıklayını
 
       const response = await ai.models.generateContent({
         model: selectedModel,
-        contents: [prompt, { inlineData: { mimeType: 'image/png', data: base64Image } }]
+        contents: [prompt, { inlineData: { mimeType: 'image/jpeg', data: base64Image } }]
       });
 
       return response.text;

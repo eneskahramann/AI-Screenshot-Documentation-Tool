@@ -92,7 +92,7 @@ async function generateDocx(capturedScreens) {
         spacing: { before: 200, after: 150 }
       }),
       new Paragraph({
-        children: [new ImageRun({ data: imgBuffer, type: 'png', transformation: { width: 580, height: 330 } })],
+        children: [new ImageRun({ data: imgBuffer, type: 'jpeg', transformation: { width: 580, height: 330 } })],
         alignment: AlignmentType.CENTER,
         spacing: { after: 200 }
       }),
