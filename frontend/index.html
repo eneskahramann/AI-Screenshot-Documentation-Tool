@@ -7,19 +7,22 @@
 </head>
 <body>
 
-  <div class="form-group">
-    <label>Gemini API Key:</label>
-    <input type="password" id="apiKey" placeholder="AIzaSy...">
+  <!-- Durum Göstergesi ve Ayarlar Butonu -->
+  <div id="status-container">
+    <span id="browserIndicator">🟢 Tarayıcı Bağlı</span>
+    <div>
+      <button id="reopenBtn">🔄 Yeniden Aç</button>
+      <button id="settingsBtn" title="Ayarlar" style="background:none; border:none; cursor:pointer; font-size:18px; margin-left:10px;">⚙️</button>
+    </div>
   </div>
 
-  <!-- YENİ: Ana Modül Giriş Alanı -->
   <div class="form-group">
     <label>Ana Modül Adı (Örn: Araç Kampanya):</label>
     <input type="text" id="moduleName" placeholder="Kılavuzdaki Ana Başlık">
   </div>
 
   <div class="form-group">
-    <label>Ekran Başlığı (Örn: Araç Kampanya Liste):</label>
+    <label>Modül Adı (Örn: Araç Kampanya Liste):</label>
     <input type="text" id="title" placeholder="Kılavuzdaki Alt Başlık">
   </div>
 
@@ -29,20 +32,48 @@
       <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
       <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
       <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
-      <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
+      <option value="gemini-3.1-flash">Gemini 3.1 Flash</option>
     </select>
   </div>
 
+  <!-- ORİJİNAL TASARIM: Butonlar CSS'teki .btn-group ile yan yana -->
   <div class="btn-group">
     <button id="captureBtn">📸 Ekranı Yakala</button>
     <button id="finishBtn">💾 Bitir & Word Üret</button>
   </div>
+  
+  <div class="log" id="logArea">Hazır. İşlem bekleniyor...</div>
 
-  <div id="gallery-container">
+  <!-- Çekilen Adımlar Galerisi -->
+  <div id="gallery-container" style="display: none; margin-top: 15px;">
+    <h3>📷 Çekilen Adımlar</h3>
+    <p style="font-size: 11px; color: #666; margin-bottom: 8px;">*Sıralamayı değiştirmek için sürükleyip bırakın.</p>
     <ul id="screen-list"></ul>
   </div>
 
-  <div id="logArea">Hazır. İşlem bekleniyor...</div>
+  <!-- AYARLAR MODAL PENCERESİ -->
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="closeSettings">&times;</span>
+      <h3 style="margin-top: 0;">⚙️ API Ayarları</h3>
+      <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Limitlere takılmamak için en fazla 3 farklı Gemini API Key girebilirsiniz. Sistem bunları sırayla kullanacaktır.</p>
+      
+      <div class="form-group">
+        <label>1. API Key (Zorunlu):</label>
+        <input type="password" id="apiKey1" placeholder="AIzaSy...">
+      </div>
+      <div class="form-group">
+        <label>2. API Key (İsteğe Bağlı):</label>
+        <input type="password" id="apiKey2" placeholder="AIzaSy...">
+      </div>
+      <div class="form-group">
+        <label>3. API Key (İsteğe Bağlı):</label>
+        <input type="password" id="apiKey3" placeholder="AIzaSy...">
+      </div>
+      
+      <button id="saveSettingsBtn" style="width: 100%; background-color: #2ecc71; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer;">Kaydet ve Kapat</button>
+    </div>
+  </div>
 
   <script src="renderer.js"></script>
 </body>

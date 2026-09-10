@@ -2,6 +2,12 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 
 let browser = null;
+let onDisconnectCb = null; 
+
+// Yeni eklediğimiz dinleyici fonksiyon
+function setDisconnectCallback(cb) {
+  onDisconnectCb = cb;
+}
 
 async function initBrowser() {
   const getBrowserPath = () => {
@@ -20,6 +26,12 @@ async function initBrowser() {
     args: ['--start-maximized', '--no-sandbox', '--ignore-certificate-errors']
   });
   
+  // Tarayıcı koptuğunda main.js'e haber ver
+  browser.on('disconnected', () => {
+    browser = null;
+    if (onDisconnectCb) onDisconnectCb(); 
+  });
+
   const pages = await browser.pages();
   const initialPage = pages.length > 0 ? pages[0] : await browser.newPage();
   await initialPage.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 2 });
@@ -27,11 +39,17 @@ async function initBrowser() {
 }
 
 async function captureActivePage(imgPath, customTitle, stepCount) {
-  if (!browser) throw new Error('Tarayıcı henüz aktif değil.');
+  // HATA BURADAYDI ÇÖZÜLDÜ: isConnected() tamamen kaldırıldı, sadece browser var mı diye bakıyoruz
+  if (!browser) {
+    throw new Error('Tarayıcı kapalı! Lütfen "Yeniden Aç" butonuna basın.');
+  }
 
-  const currentPages = await browser.pages();
+  let currentPages = await browser.pages();
   if (!currentPages || currentPages.length === 0) {
-    throw new Error('Açık tarayıcı sekmesi bulunamadı.');
+    const newPage = await browser.newPage();
+    await newPage.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 2 });
+    await newPage.goto('about:blank');
+    currentPages = [newPage];
   }
   
   let activePage = currentPages[currentPages.length - 1];
@@ -64,4 +82,5 @@ async function closeBrowser() {
   }
 }
 
-module.exports = { initBrowser, captureActivePage, closeBrowser };
+// Tüm fonksiyonları dışarı aktardığımızdan emin oluyoruz
+module.exports = { initBrowser, captureActivePage, closeBrowser, setDisconnectCallback };

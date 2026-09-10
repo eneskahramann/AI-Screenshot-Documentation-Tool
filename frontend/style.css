@@ -111,3 +111,93 @@ button {
   overflow-y: auto;
   box-sizing: border-box;
 }
+/* Buton pasif (disabled) durumdayken uygulanacak stil */
+button:disabled {
+  background-color: #7f8c8d !important;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+/* --- YENİ EKLENENLER: BAĞLANTI DURUMU VE BUTONLAR --- */
+
+/* Durum gösterge alanı (Status Container) */
+#status-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #f1f2f6; /* Hafif gri bir arka plan */
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+/* Durum metni (🟢 Bağlı / 🔴 Koptu) */
+#browserIndicator {
+  font-weight: bold;
+  font-size: 14px;
+  transition: color 0.3s ease; /* Renk değişimini yumuşat */
+}
+
+/* Yeniden Aç Butonu */
+#reopenBtn {
+  display: none; 
+  background-color: #e74c3c; 
+  color: white;
+  padding: 4px 10px; /* İç boşlukları daralttık */
+  font-size: 12px;
+  margin: 0;
+  width: max-content; /* Sadece yazının kapladığı kadar genişle */
+  white-space: nowrap; /* Yazıyı tek satırda tut */
+  flex: 0 0 auto; /* Flexbox'ın butonu yatayda zorla uzatmasını engelle */
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+#reopenBtn:hover {
+  background-color: #c0392b; /* Üzerine gelince biraz koyulaşsın */
+}
+
+/* Tüm butonlar (Ekran Yakala vb.) pasif (disabled) olduğunda uygulanacak stil */
+button:disabled {
+  background-color: #7f8c8d !important; /* Pasif gri renk */
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* --- AYARLAR MODAL PENCERESİ STİLLERİ --- */
+.modal {
+  display: none; 
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); 
+  backdrop-filter: blur(2px); 
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 40% auto; 
+  padding: 20px;
+  border-radius: 8px;
+  width: 80%;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  position: relative;
+}
+
+.close-btn {
+  color: #aaa;
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  color: #333;
+}
