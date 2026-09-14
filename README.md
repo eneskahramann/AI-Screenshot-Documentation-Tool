@@ -1,45 +1,51 @@
-# AI-Screenshot-Documentation-Tool
-Electron ve Puppeteer ile ekran görüntüsü alıp, Google Gemini AI kullanarak kurumsal teknik dokümantasyon (Word) üreten masaüstü otomasyon aracı.
+📸 AI Destekli Otomatik Kılavuz Üreticisi (Electron & Puppeteer & Gemini AI)
+Bu proje; web uygulamaları veya sistemler üzerinde dolaşırken anlık ekran görüntüleri alan, bu görüntüleri Google Gemini Yapay Zeka modelleriyle analiz eden ve elde edilen verileri profesyonel bir kurumsal formatta (Word/.docx) masaüstüne raporlayan gelişmiş bir masaüstü otomasyon aracıdır.
 
-# 📸 AI Destekli Otomatik Kılavuz Üreticisi (Electron & Puppeteer & Gemini AI)
+Son güncellemelerle birlikte proje, API limitlerini aşmak için Round-Robin (Çoklu API ve Model Rotasyonu) mimarisiyle güçlendirilmiştir.
 
-Bu proje; web uygulamaları veya sistemler üzerinde dolaşırken anlık ekran görüntüleri alan, bu görüntüleri **Google Gemini Yapay Zeka** modelleriyle analiz eden ve elde edilen verileri profesyonel bir kurumsal formatta (Word/.docx) masaüstüne raporlayan masaüstü otomasyon aracıdır.
+🚀 Sistem Nasıl Çalışır? (Mimari ve Akış)
+Gelişmiş Arayüz Kontrolü ve Adım Yönetimi:
 
-## 🚀 Sistem Nasıl Çalışır? (Mimari ve Akış)
+Kullanıcı, ayarlar menüsünden kota sınırlarına takılmamak için 3 farklı Gemini API Key girebilir ve kullanmak istediği çoklu Yapay Zeka Modellerini (Gemini 3.6 Flash, 3.5 Flash, Lite vb.) seçebilir.
 
-1. **Arayüz Kontrolü (`index.html`):** 
-   - Kullanıcı uygulama panelinden kendi **Gemini API Key**'ini girer, isteğe bağlı ekran başlığı belirler ve kullanmak istediği **Yapay Zeka Modelini** (Gemini Flash serisi) seçer.
-   - Bilgiler Electron'un arka plan motoruna iletilir.
+Çekilen ekran görüntüleri ve adımlar arayüzdeki canlı galeriye yansır. Kullanıcılar bu adımları sürükle-bırak (drag & drop) yöntemiyle yeniden sıralayabilir veya hatalı adımları silebilir.
 
-2. **Tarayıcı Otomasyonu ve Yakalama (`Puppeteer`):**
-   - Arka planda çalışan Puppeteer motoru, hedef bilgisayardaki mevcut **Chrome veya Edge** tarayıcısını otomatik olarak tespit edip çalıştırır.
-   - Kullanıcı uygulamanın "Ekranı Yakala" butonuna bastığında, aktif sekmenin ekran görüntüsü anlık olarak alınır.
-   - Alınan görüntü, sistem çökmelerini (asar salt okunur hatası) engellemek için doğrudan bilgisayarın geçici veya uygulama dizinine (`temp_screenshots`) güvenli bir şekilde kaydedilir.
+Tarayıcı Otomasyonu ve Yakalama (Puppeteer):
 
-3. **Yapay Zeka Analizi (`Google GenAI`):**
-   - Kaydedilen ekran görüntüsü ve kullanıcının belirttiği ekran başlığı, sisteme özel olarak tanımlanmış profesyonel kurumsal dokümantasyon promptu ile birlikte Gemini API'ye gönderilir.
-   - API hız sınırlarına (kota koruması) takılmamak için sistem otomatik olarak akıllı bir bekleme ve yeniden deneme (Retry) mekanizması barındırır.
+Arka planda çalışan Puppeteer motoru, hedef bilgisayardaki mevcut Chrome veya Edge tarayıcısını otomatik olarak tespit edip yüksek stabilite ile çalıştırır.
 
-4. **Word Belgesi Üretimi (`docx`):**
-   - Yapay zekadan gelen resmi ve yapılandırılmış metinler, otomatik olarak Word uyumlu başlık, resim ve madde işaretli listelere dönüştürülür.
-   - Kullanıcı kılavuz oluşturma işlemini bitirdiğinde, tüm adımlar harmanlanır ve masaüstüne `Arayuzle_Uretilen_Kilavuz.docx` adıyla (çakışmaları önlemek için saat damgasıyla) kaydedilir.
+Kullanıcı uygulamanın "Ekranı Yakala" butonuna bastığında, aktif sekmenin ekran görüntüsü anlık olarak alınır. Görüntüler, sistem çökmelerini (asar salt okunur hatası) engellemek için geçici bir dizine (temp_screenshots) güvenli bir şekilde kaydedilir.
 
-## 🛠️ Kullanılan Teknolojiler
-* **Electron.js:** Masaüstü uygulama çatısı.
-* **Puppeteer:** Tarayıcı otomasyonu ve ekran yakalama.
-* **Google GenAI (`@google/genai`):** Görsel analizi ve metin üretimi.
-* **Docx:** Programatik Word belgesi tasarımı ve üretimi.
+Yapay Zeka Analizi ve Round-Robin Mimarisi (Google GenAI):
 
-## ⚙️ Kurulum ve Çalıştırma
+Dinamik Rotasyon: Kaydedilen ekran görüntüsü, sisteme girilen API anahtarları ve modeller arasında sırayla dönülerek (Round-Robin) Gemini API'ye gönderilir. Bu sayede dakikalık istek limitleri (RPM) dengelenir.
 
+Hata Toleransı (Retry Mekanizması): Herhangi bir API kotası dolduğunda veya geçersiz anahtar hatası alındığında, sistem çökmek yerine 10 saniye bekler ve şansını anında sıradaki model ve anahtar ile tekrar dener (Maksimum 3 deneme).
+
+Otomatik Word Belgesi Üretimi (docx):
+
+Yapay zekadan gelen resmi, edilgen çatılı ve yapılandırılmış metinler; otomatik olarak Word uyumlu başlık, resim ve madde işaretli listelere dönüştürülür.
+
+Kullanıcı işlemi bitirdiğinde tüm adımlar harmanlanır ve çakışmaları önlemek için saat damgasıyla birlikte .docx formatında dışa aktarılır.
+
+🛠️ Kullanılan Teknolojiler
+Electron.js: Çapraz platform masaüstü uygulama çatısı ve IPC haberleşmesi.
+
+Puppeteer: Kesintisiz tarayıcı otomasyonu ve yüksek çözünürlüklü ekran yakalama.
+
+Google GenAI (@google/genai): Çoklu model desteğiyle görsel analizi ve metin üretimi.
+
+Docx: Programatik Word belgesi tasarımı ve derlemesi.
+
+⚙️ Kurulum ve Çalıştırma
 Projeyi yerel bilgisayarınızda çalıştırmak için terminalde sırasıyla şu adımları izleyin:
 
-```bash
+Bash
 # Proje bağımlılıklarını yükleyin
 npm install
 
 # Geliştirme modunda (Test için) başlatın
 npm start
 
-# Uygulamayı taşınabilir .exe formatında paketleyin (Build)
+# Uygulamayı paketleyin (Build)
 npm run dist
