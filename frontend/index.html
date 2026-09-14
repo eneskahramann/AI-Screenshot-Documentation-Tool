@@ -9,37 +9,26 @@
 
   <!-- Durum Göstergesi ve Ayarlar Butonu -->
   <div id="status-container">
-    <span id="browserIndicator">🟢 Tarayıcı Bağlı</span>
+    <span id="browserIndicator">🟢 Tarayıcı Açık</span>
     <div>
-      <button id="reopenBtn">🔄 Yeniden Aç</button>
+      <button id="reopenBtn">🔄 Tarayıcıyı Yeniden Aç</button>
       <button id="settingsBtn" title="Ayarlar" style="background:none; border:none; cursor:pointer; font-size:18px; margin-left:10px;">⚙️</button>
     </div>
   </div>
 
   <div class="form-group">
-    <label>Ana Modül Adı (Örn: Araç Kampanya):</label>
+    <label>Ana Başlık (Örn: Araç Kampanya):</label>
     <input type="text" id="moduleName" placeholder="Kılavuzdaki Ana Başlık">
   </div>
 
   <div class="form-group">
-    <label>Modül Adı (Örn: Araç Kampanya Liste):</label>
+    <label>Alt Başlık (Örn: Araç Kampanya Liste):</label>
     <input type="text" id="title" placeholder="Kılavuzdaki Alt Başlık">
   </div>
 
-  <div class="form-group">
-    <label>Yapay Zeka Modeli:</label>
-    <select id="aiModel">
-      <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
-      <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
-      <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
-      <option value="gemini-3.1-flash">Gemini 3.1 Flash</option>
-    </select>
-  </div>
-
-  <!-- ORİJİNAL TASARIM: Butonlar CSS'teki .btn-group ile yan yana -->
   <div class="btn-group">
     <button id="captureBtn">📸 Ekranı Yakala</button>
-    <button id="finishBtn">💾 Bitir & Word Üret</button>
+    <button id="finishBtn">💾 Bitir (.docx)</button>
   </div>
   
   <div class="log" id="logArea">Hazır. İşlem bekleniyor...</div>
@@ -55,23 +44,33 @@
   <div id="settingsModal" class="modal">
     <div class="modal-content">
       <span class="close-btn" id="closeSettings">&times;</span>
-      <h3 style="margin-top: 0;">⚙️ API Ayarları</h3>
-      <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Limitlere takılmamak için en fazla 3 farklı Gemini API Key girebilirsiniz. Sistem bunları sırayla kullanacaktır.</p>
+      <h3 style="margin-top: 0;">⚙️ Ayarlar</h3>
       
+      <!-- API Ayarları -->
+      <h4 style="margin-top: 10px; margin-bottom: 5px; font-size: 14px;">🔑 API Anahtarları</h4>
+      <p style="font-size: 11px; color: #666; margin-bottom: 10px;">Birden fazla anahtar girerseniz sırayla kullanılır ve limite takılmazsınız.</p>
+    
       <div class="form-group">
-        <label>1. API Key (Zorunlu):</label>
-        <input type="password" id="apiKey1" placeholder="AIzaSy...">
+        <input type="password" id="apiKey1" placeholder="1. API Key (Zorunlu)">
       </div>
       <div class="form-group">
-        <label>2. API Key (İsteğe Bağlı):</label>
-        <input type="password" id="apiKey2" placeholder="AIzaSy...">
+        <input type="password" id="apiKey2" placeholder="2. API Key (İsteğe Bağlı)">
       </div>
       <div class="form-group">
-        <label>3. API Key (İsteğe Bağlı):</label>
-        <input type="password" id="apiKey3" placeholder="AIzaSy...">
+        <input type="password" id="apiKey3" placeholder="3. API Key (İsteğe Bağlı)">
+      </div>
+
+      <!-- Model Ayarları (YENİ) -->
+      <h4 style="margin-top: 15px; margin-bottom: 5px; font-size: 14px;">🤖 Kullanılacak Modeller</h4>
+      <p style="font-size: 11px; color: #666; margin-bottom: 10px;">Seçilen modeller her işlemde sırayla devreye girer.</p>
+      <div class="form-group" style="font-size: 13px;">
+        <div><label><input type="checkbox" class="model-cb" value="gemini-3.6-flash" checked> Gemini 3.6 Flash</label></div>
+        <div><label><input type="checkbox" class="model-cb" value="gemini-3.5-flash" checked> Gemini 3.5 Flash</label></div>
+        <div><label><input type="checkbox" class="model-cb" value="gemini-3.5-flash-lite" checked> Gemini 3.5 Flash Lite</label></div>
+        <div><label><input type="checkbox" class="model-cb" value="gemini-3.1-flash" checked> Gemini 3.1 Flash</label></div>
       </div>
       
-      <button id="saveSettingsBtn" style="width: 100%; background-color: #2ecc71; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer;">Kaydet ve Kapat</button>
+      <button id="saveSettingsBtn" style="width: 100%; background-color: #2ecc71; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; margin-top: 10px;">Kaydet ve Kapat</button>
     </div>
   </div>
 

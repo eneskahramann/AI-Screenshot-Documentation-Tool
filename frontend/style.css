@@ -178,14 +178,20 @@ button:disabled {
   backdrop-filter: blur(2px); 
 }
 
+/*Ayarlar menüsü*/
+
 .modal-content {
   background-color: #fff;
-  margin: 40% auto; 
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  
   padding: 20px;
   border-radius: 8px;
-  width: 80%;
+  width: 85%;
+  box-sizing: border-box;
   box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  position: relative;
 }
 
 .close-btn {

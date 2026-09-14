@@ -39,7 +39,7 @@ async function initBrowser() {
 }
 
 async function captureActivePage(imgPath, customTitle, stepCount) {
-  // HATA BURADAYDI ÇÖZÜLDÜ: isConnected() tamamen kaldırıldı, sadece browser var mı diye bakıyoruz
+
   if (!browser) {
     throw new Error('Tarayıcı kapalı! Lütfen "Yeniden Aç" butonuna basın.');
   }
