@@ -100,12 +100,12 @@ ipcMain.on('capture-screen', async (event, data) => {
     
     const finalTitle = await captureActivePage(imgPath, data.title, stepCount);
     
-    sendLog(`🤖 [${data.modelName}] "${finalTitle}" inceleniyor...`);
+    sendLog(`📸 Ekran yakalandı, analiz başlatılıyor: "${finalTitle}"...`);
     const imgBuffer = fs.readFileSync(imgPath);
     
-    // 🔥 DÜZELTİLEN KISIM: data.apiKey yerine data.apiKeys yazıldı
-    const desc = await explainScreenLikeIlksan(imgBuffer, finalTitle, data.apiKeys, data.modelName, sendLog);
-    
+    // AI ile ekran açıklaması alınıyor
+    const desc = await explainScreenLikeIlksan(imgBuffer, finalTitle, data.apiKeys, data.models, sendLog);
+    // Ekran verisi oluşturuluyor ve galeriye ekleniyor
     const screenData = { 
       id: Date.now().toString(), 
       moduleName: data.moduleName || "Genel İşlemler", 

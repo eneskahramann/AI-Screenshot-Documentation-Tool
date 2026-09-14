@@ -2,7 +2,7 @@ const { ipcRenderer } = require('electron');
 
 const moduleNameInput = document.getElementById('moduleName');
 const titleInput = document.getElementById('title');
-const aiModelSelect = document.getElementById('aiModel');
+// Tekli model seçimini (aiModelSelect) HTML'den kaldırdığımız için sildik.
 const captureBtn = document.getElementById('captureBtn');
 const finishBtn = document.getElementById('finishBtn');
 const logArea = document.getElementById('logArea');
@@ -18,16 +18,25 @@ const saveSettingsBtn = document.getElementById('saveSettingsBtn');
 const key1Input = document.getElementById('apiKey1');
 const key2Input = document.getElementById('apiKey2');
 const key3Input = document.getElementById('apiKey3');
+const modelCheckboxes = document.querySelectorAll('.model-cb'); // YENİ: Checkbox'ları yakala
 
 const galleryContainer = document.getElementById('gallery-container');
 const screenList = document.getElementById('screen-list');
 let draggedItem = null;
 
-// Uygulama açıldığında localStorage'dan kayıtlı anahtarları doldur
+// Uygulama açıldığında localStorage'dan kayıtlı anahtarları ve modelleri doldur
 window.addEventListener('DOMContentLoaded', () => {
   key1Input.value = localStorage.getItem('geminiKey1') || '';
   key2Input.value = localStorage.getItem('geminiKey2') || '';
   key3Input.value = localStorage.getItem('geminiKey3') || '';
+
+  // Kayıtlı modelleri yükle
+  const savedModels = JSON.parse(localStorage.getItem('savedModels'));
+  if (savedModels && savedModels.length > 0) {
+    modelCheckboxes.forEach(cb => {
+      cb.checked = savedModels.includes(cb.value);
+    });
+  }
 });
 
 // Modal Açma / Kapama İşlemleri
@@ -50,8 +59,17 @@ saveSettingsBtn.addEventListener('click', () => {
   localStorage.setItem('geminiKey1', key1Input.value.trim());
   localStorage.setItem('geminiKey2', key2Input.value.trim());
   localStorage.setItem('geminiKey3', key3Input.value.trim());
+  
+  // Seçili modelleri kaydet
+  const selectedModels = Array.from(document.querySelectorAll('.model-cb:checked')).map(cb => cb.value);
+  if (selectedModels.length === 0) {
+    alert("Lütfen en az 1 adet Yapay Zeka modeli seçin!");
+    return;
+  }
+  localStorage.setItem('savedModels', JSON.stringify(selectedModels));
+
   settingsModal.style.display = 'none';
-  logArea.innerHTML = "✅ API Ayarları başarıyla kaydedildi.";
+  logArea.innerHTML = "✅ API ve Model ayarları başarıyla kaydedildi.";
 });
 
 // Ekranı Yakala Butonu
@@ -65,19 +83,22 @@ captureBtn.addEventListener('click', () => {
 
   if (keysArray.length === 0) {
     logArea.innerHTML = "❌ Hata: Ayarlar (⚙️) menüsünden en az 1 API Key girmelisiniz!";
-    settingsModal.style.display = 'block'; // Kullanıcı kolayca bulsun diye modalı açıyoruz
+    settingsModal.style.display = 'block'; 
     return;
   }
+
+  // YENİ: Seçili modelleri hafızadan çek
+  const modelsArray = JSON.parse(localStorage.getItem('savedModels')) || ['gemini-3.6-flash'];
   
   captureBtn.disabled = true;
   captureBtn.innerHTML = "⏳ İşleniyor...";
 
-  // Arka plana temiz dizi halinde gönderiyoruz
+  // Arka plana temiz dizi halinde hem anahtarları hem de modelleri gönderiyoruz
   ipcRenderer.send('capture-screen', {
     apiKeys: keysArray, 
     moduleName: moduleNameInput.value.trim(),
     title: titleInput.value.trim(),
-    modelName: aiModelSelect.value 
+    models: modelsArray // YENİ: Dizi olarak modelleri gönderdik
   });
   
   titleInput.value = ''; 
@@ -90,15 +111,15 @@ finishBtn.addEventListener('click', () => {
     galleryContainer.style.display = 'none';
   }, 2000);
 });
-
+// Arka plandan gelen log mesajlarını ekrana yazdır
 ipcRenderer.on('log', (event, message) => {
   logArea.innerHTML = message;
-  if (message.includes('❌')) {
+  if (message.includes('❌') || message.includes('galeriye eklendi')) {
     captureBtn.disabled = false;
     captureBtn.innerHTML = "📸 Ekranı Yakala";
   }
 });
-
+// Ekran eklendiğinde galeriye ekle ve Drag & Drop işlemlerini ayarla
 ipcRenderer.on('screen-added', (event, screen) => {
   captureBtn.disabled = false;
   captureBtn.innerHTML = "📸 Ekranı Yakala";
@@ -107,12 +128,12 @@ ipcRenderer.on('screen-added', (event, screen) => {
   const li = document.createElement('li');
   li.dataset.id = screen.id;
   li.draggable = true;
-
+  // Ekran başlığı ve modül adını göster
   li.innerHTML = `
     <span><strong style="cursor: grab; margin-right: 8px; color: #888;">☰</strong> [${screen.moduleName}] ${screen.title}</span>
     <button class="delete-btn">Sil</button>
   `;
-
+  // Sil butonuna tıklandığında ekranı sil ve arka plana bildir
   li.querySelector('.delete-btn').addEventListener('click', () => {
     li.remove();
     ipcRenderer.send('delete-screen', screen.id);
@@ -123,7 +144,7 @@ ipcRenderer.on('screen-added', (event, screen) => {
     draggedItem = li;
     setTimeout(() => li.style.opacity = '0.5', 0);
   });
-
+  // Drag & Drop işlemleri
   li.addEventListener('dragend', function() {
     setTimeout(() => {
       draggedItem.style.opacity = '1';
@@ -131,7 +152,7 @@ ipcRenderer.on('screen-added', (event, screen) => {
       sendNewOrder();
     }, 0);
   });
-
+  
   li.addEventListener('dragover', (e) => e.preventDefault());
 
   li.addEventListener('drop', function(e) {
@@ -148,27 +169,27 @@ ipcRenderer.on('screen-added', (event, screen) => {
 
   screenList.appendChild(li);
 });
-
+// Ekran sıralaması değiştiğinde yeni sıralamayı arka plana gönder
 function sendNewOrder() {
   const currentList = document.querySelectorAll('#screen-list li');
   const newOrderIds = Array.from(currentList).map(item => item.dataset.id);
   ipcRenderer.send('reorder-screens', newOrderIds);
 }
-
+// Tarayıcı durumu güncelleme
 ipcRenderer.on('browser-status', (event, isConnected) => {
   if (isConnected) {
-    browserIndicator.innerHTML = "🟢 Tarayıcı Bağlı";
+    browserIndicator.innerHTML = "🟢 Tarayıcı Açık";
     browserIndicator.style.color = "#2ecc71";
     reopenBtn.style.display = "none";
     captureBtn.disabled = false; 
   } else {
-    browserIndicator.innerHTML = "🔴 Bağlantı Koptu";
+    browserIndicator.innerHTML = "🔴 Tarayıcı Kapalı";
     browserIndicator.style.color = "#e74c3c";
     reopenBtn.style.display = "block";
     captureBtn.disabled = true; 
   }
 });
-
+// Tarayıcıyı yeniden açma butonu
 reopenBtn.addEventListener('click', () => {
   reopenBtn.disabled = true; 
   reopenBtn.innerHTML = "Açılıyor...";

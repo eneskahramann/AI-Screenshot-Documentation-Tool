@@ -1,4 +1,3 @@
-
 {
   "name": "puppeteer-demo",
   "version": "1.0.0",
@@ -6,14 +5,23 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
+    "build": "electron-builder",
     "dist": "electron-builder --win --x64"
   },
   "build": {
     "appId": "com.eneskod.kilavuzaraci",
     "productName": "KilavuzAraci",
     "directories": {
-      "output": "C:\\Users\\KAHRAMAN\\Desktop\\KilavuzProgrami"
+      "output": "${env.USERPROFILE}/Desktop/KilavuzProgrami"
     },
+    "files": [
+      "main.js",
+      "frontend/**/*",
+      "services/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "asar": true,
     "win": {
       "target": "dir"
     }

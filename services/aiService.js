@@ -1,10 +1,12 @@
 const { GoogleGenAI } = require('@google/genai');
 
-let currentKeyIndex = 0; // Round-Robin için global sayaç
+let currentKeyIndex = 0; // Round-Robin için global Key sayacı
+let currentModelIndex = 0; // YENİ: Round-Robin için global Model sayacı
 
-async function explainScreenLikeIlksan(imageBuffer, screenName, apiKeys, selectedModel, onLog, maxRetries = 3) {
-  // apiKeys parametresinin dizi (array) geldiğinden emin oluyoruz
+async function explainScreenLikeIlksan(imageBuffer, screenName, apiKeys, models, onLog, maxRetries = 3) {
+  // apiKeys ve models parametrelerinin dizi geldiğinden emin oluyoruz
   const keysArray = Array.isArray(apiKeys) ? apiKeys : [apiKeys];
+  const modelsArray = Array.isArray(models) && models.length > 0 ? models : ['gemini-3.6-flash'];
   
   const base64Image = imageBuffer.toString('base64');
   const prompt = `
@@ -31,23 +33,28 @@ KURAL: Tüm metni resmi dille yaz. Senli benli veya yönlendirici ("tıklayını
 
   // DÖNGÜ BAŞLANGICI: 3 aşamalı deneme
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    // Her denemede sıradaki API Key'i seçiyoruz
+    // 1. Sıradaki API Key'i seç
     const activeKey = keysArray[currentKeyIndex % keysArray.length];
     const activeKeyNumber = (currentKeyIndex % keysArray.length) + 1;
     
-    currentKeyIndex++; // Sonraki istek/deneme için sayacı artır
+    // 2. YENİ: Sıradaki Modeli seç
+    const activeModel = modelsArray[currentModelIndex % modelsArray.length];
+    
+    // Sayaçları sonraki istek/deneme için artır
+    currentKeyIndex++; 
+    currentModelIndex++; 
 
     const ai = new GoogleGenAI({ apiKey: activeKey });
     
-    if (keysArray.length > 1 && onLog) {
-      onLog(`🔑 API Key ${activeKeyNumber} devrede (Deneme: ${attempt}/${maxRetries})...`);
+    if (onLog) {
+      onLog(`🤖 [${activeModel}] "${screenName}" inceleniyor (Key: ${activeKeyNumber})...`);
     }
 
     try {
-      console.log(`🤖 [${selectedModel}] "${screenName}" inceleniyor (Key: ${activeKeyNumber})...`);
+      console.log(`🤖 [${activeModel}] "${screenName}" inceleniyor (Key: ${activeKeyNumber})...`);
 
       const response = await ai.models.generateContent({
-        model: selectedModel,
+        model: activeModel,
         contents: [
           prompt, 
           { inlineData: { mimeType: 'image/jpeg', data: base64Image } }
@@ -56,7 +63,7 @@ KURAL: Tüm metni resmi dille yaz. Senli benli veya yönlendirici ("tıklayını
 
       return response.text;
     } catch (err) {
-      console.warn(`⚠️ API Hatası (${attempt}. deneme, Key ${activeKeyNumber}): ${err.message}`);
+      console.warn(`⚠️ API Hatası (${attempt}. deneme, Model ${activeModel}, Key ${activeKeyNumber}): ${err.message}`);
       
       if (attempt < maxRetries) {
         // Hata durumunda sabit 10 saniye bekliyoruz
@@ -64,10 +71,9 @@ KURAL: Tüm metni resmi dille yaz. Senli benli veya yönlendirici ("tıklayını
         console.log(`⏳ Hata oluştu. ${waitTime / 1000} saniye bekleniyor...`);
         
         if(onLog) {
-          // Kullanıcı tek key girdiyse ona göre, çok key girdiyse ona göre mesaj veriyoruz
-          const logMsg = keysArray.length === 1 
+          const logMsg = keysArray.length === 1 && modelsArray.length === 1
             ? `⏳ Limit aşıldı, ${waitTime / 1000}sn bekleniyor (${attempt}/${maxRetries})...`
-            : `⏳ Hata alındı, ${waitTime / 1000}sn sonra sıradaki anahtara geçilecek...`;
+            : `⏳ Hata alındı, ${waitTime / 1000}sn sonra sıradaki modele/anahtara geçilecek...`;
           onLog(logMsg);
         }
         
